@@ -82,6 +82,21 @@ def update(post_id):
     return jsonify(post), 200
 
 
+@app.route("/api/posts/search", methods=["GET"])
+def search():
+    title_query = request.args.get("title", "").lower()
+    content_query = request.args.get("content", "").lower()
+
+    results = []
+
+    for post in POSTS:
+        title_match = title_query in post["title"].lower() if title_query else True
+        content_match = content_query in post["content"].lower() if content_query else True
+
+        if title_match and content_match:
+            results.append(post)
+
+    return jsonify(results), 200
 
 def get_next_id():
     if POSTS:
