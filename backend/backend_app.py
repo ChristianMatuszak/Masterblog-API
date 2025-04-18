@@ -55,6 +55,34 @@ def delete(post_id):
     return jsonify({"message": f"Post {post_id} deleted"}), 200
 
 
+@app.route("/api/posts/<int:post_id>", methods=["PUT"])
+def update(post_id):
+
+    posts = request.get_json()
+
+    post = next((post for post in POSTS if post["id"] == post_id), None)
+    if not post:
+        return jsonify({"error": f"Post with id {post_id} not found"}), 404
+
+    title = posts.get("title")
+    content = posts.get("content",)
+
+    if title is not None and not title.strip():
+        return jsonify({"error": "Title cannot be empty"}), 400
+    if content is not None and not content.strip():
+        return jsonify({"error": "Content cannot be empty"}), 400
+
+    if title is not None:
+        if title.strip():
+            post["title"] = title.strip()
+    if content is not None:
+        if content.strip():
+            post["content"] = content.strip()
+
+    return jsonify(post), 200
+
+
+
 def get_next_id():
     if POSTS:
         return POSTS[-1]["id"] + 1
