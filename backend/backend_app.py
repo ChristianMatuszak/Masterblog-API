@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -12,6 +12,18 @@ POSTS = [
 
 @app.route("/api/posts", methods=["GET"])
 def get_posts():
+    """
+    Retrieves the list of blog posts, optionally sorted by title or content.
+
+    Query Parameters:
+        sort (str, optional): Field to sort by. Accepts 'title' or 'content'.
+        direction (str, optional): Sort order. Accepts 'asc' (ascending) or 'desc' (descending).
+
+    Returns:
+        Response: JSON list of posts, sorted if parameters are valid.
+        HTTP 200: On success.
+        HTTP 400: If invalid sort or direction parameters are provided.
+    """
     sort_by = request.args.get("sort")
     direction = request.args.get("direction")
 
@@ -31,6 +43,20 @@ def get_posts():
 
 @app.route("/api/posts", methods=["POST"])
 def add():
+    """
+    Creates a new blog post with a title and content.
+
+    JSON Body:
+        {
+            "title": "Post Title",
+            "content": "Post Content"
+        }
+
+    Returns:
+        Response: The newly created post as a JSON object.
+        HTTP 201: On successful creation.
+        HTTP 400: If title or content is missing or empty, or if the body is not valid JSON.
+    """
     posts = request.get_json()
 
     if not posts:
@@ -60,6 +86,17 @@ def add():
 
 @app.route("/api/posts/<int:post_id>", methods=["DELETE"])
 def delete(post_id):
+    """
+    Deletes a blog post by its ID.
+
+    Path Parameters:
+        post_id (int): The ID of the post to delete.
+
+    Returns:
+        Response: A message confirming deletion.
+        HTTP 200: On successful deletion.
+        HTTP 404: If the post with the given ID does not exist.
+    """
     post_delete = next((post for post in POSTS if post["id"] == post_id),None)
 
     if not post_delete:
@@ -71,7 +108,24 @@ def delete(post_id):
 
 @app.route("/api/posts/<int:post_id>", methods=["PUT"])
 def update(post_id):
+    """
+    Updates the title and/or content of an existing blog post.
 
+    Path Parameters:
+        post_id (int): The ID of the post to update.
+
+    JSON Body:
+        {
+            "title": "Updated Title (optional)",
+            "content": "Updated Content (optional)"
+        }
+
+    Returns:
+        Response: The updated post as a JSON object.
+        HTTP 200: On successful update.
+        HTTP 400: If provided title or content is empty.
+        HTTP 404: If the post with the given ID does not exist.
+    """
     posts = request.get_json()
 
     post = next((post for post in POSTS if post["id"] == post_id), None)
@@ -98,6 +152,17 @@ def update(post_id):
 
 @app.route("/api/posts/search", methods=["GET"])
 def search():
+    """
+    Searches for blog posts by title and/or content keywords.
+
+    Query Parameters:
+        title (str, optional): Substring to search for in the title.
+        content (str, optional): Substring to search for in the content.
+
+    Returns:
+        Response: A list of posts matching the search criteria.
+        HTTP 200: Always returns 200, even if the result list is empty.
+    """
     title_query = request.args.get("title", "").lower()
     content_query = request.args.get("content", "").lower()
 
@@ -114,6 +179,12 @@ def search():
 
 
 def get_next_id():
+    """
+    Calculates the next unique ID for a new blog post.
+
+    Returns:
+        int: The next available post ID. Starts from 1 if no posts exist.
+    """
     if POSTS:
         return POSTS[-1]["id"] + 1
     return 1
