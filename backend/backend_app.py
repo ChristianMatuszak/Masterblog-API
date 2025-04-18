@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -14,6 +14,40 @@ POSTS = [
 def get_posts():
     return jsonify(POSTS)
 
+
+@app.route("/api/posts", methods=["POST"])
+def add():
+    posts = request.get_json()
+
+    if not posts:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    title = posts.get("title", "").strip()
+    content = posts.get("content", "").strip()
+
+    missing = []
+    if not title:
+        missing.append("title")
+    if not content:
+        missing.append("content")
+
+    if missing:
+        return jsonify({"error": f"Missing or empty fields: {', '.join(missing)}"}), 400
+
+    new_post = {
+        "id": get_next_id(),
+        "title": title,
+        "content": content
+    }
+
+    POSTS.append(new_post)
+    return jsonify(new_post), 201
+
+
+def get_next_id():
+    if POSTS:
+        return POSTS[-1]["id"] + 1
+    return 1
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5002, debug=True)
